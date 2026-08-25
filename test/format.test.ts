@@ -60,7 +60,13 @@ describe('checkSleeveFormat', () => {
   })
 
   it('rejects a page that is close but not the template', async () => {
-    expect(await checkSleeveFormat(buildPdf([[870, 749.261]]))).toMatch(/template/)
+    expect(await checkSleeveFormat(buildPdf([[870, 749.261]]))).toMatch(/die-line/)
+  })
+
+  it('accepts the die-line exported at 300dpi', async () => {
+    // idiocracy.pdf arrived this way; the panel crops scale to whatever page
+    // they are handed, so a bigger export is the same sleeve.
+    expect(await checkSleeveFormat(buildPdf([[3611, 3122]]))).toBeNull()
   })
 
   it('rejects a multi-page PDF even when the pages are the right size', async () => {

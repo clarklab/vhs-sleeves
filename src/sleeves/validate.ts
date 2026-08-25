@@ -59,9 +59,9 @@ export async function validateSleevePdf(file: File): Promise<ValidationResult> {
       return {
         ok: false,
         message:
-          `That page is ${width.toFixed(1)} × ${height.toFixed(1)}pt. The sleeve template is ` +
-          `${REFERENCE_PAGE.width} × ${REFERENCE_PAGE.height}pt — start from the template PDF ` +
-          `and keep the page size.`,
+          `That page is ${width.toFixed(1)} × ${height.toFixed(1)}pt, which isn't the sleeve ` +
+          `die-line (${REFERENCE_PAGE.width} × ${REFERENCE_PAGE.height}pt). Start from the ` +
+          `template and keep its proportions — a higher-resolution export is fine.`,
       }
     }
   } finally {

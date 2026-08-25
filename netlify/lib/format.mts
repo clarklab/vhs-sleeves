@@ -39,9 +39,9 @@ export async function checkSleeveFormat(bytes: Uint8Array): Promise<string | nul
     const { width, height } = page.getViewport({ scale: 1 })
     if (!matchesReferencePage(width, height)) {
       return (
-        `That page is ${width.toFixed(1)} × ${height.toFixed(1)}pt. The sleeve template is ` +
-        `${REFERENCE_PAGE.width} × ${REFERENCE_PAGE.height}pt — start from the template PDF ` +
-        `and keep the page size.`
+        `That page is ${width.toFixed(1)} × ${height.toFixed(1)}pt, which isn't the sleeve ` +
+        `die-line (${REFERENCE_PAGE.width} × ${REFERENCE_PAGE.height}pt). Start from the ` +
+        `template PDF and keep its proportions — exporting at a higher resolution is fine.`
       )
     }
   } catch {

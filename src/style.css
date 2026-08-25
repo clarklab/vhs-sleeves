@@ -608,6 +608,46 @@ input[type="range"]::-moz-range-thumb {
 }
 
 /* ── upload ─────────────────────────────────────────────────────────────── */
+.upload > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  list-style: none;
+  cursor: pointer;
+  font-size: 13.5px;
+  font-weight: 540;
+  color: var(--ink);
+}
+
+.upload > summary::-webkit-details-marker {
+  display: none;
+}
+
+.upload > summary:hover {
+  color: var(--accent);
+}
+
+.upload > summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+.upload > summary svg {
+  flex: none;
+  color: var(--ink-3);
+  transition: transform 0.18s ease;
+}
+
+.upload[open] > summary svg {
+  transform: rotate(180deg);
+}
+
+.upload-body {
+  margin-top: 14px;
+}
+
 .dropzone {
   display: grid;
   place-items: center;

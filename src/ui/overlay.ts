@@ -164,13 +164,16 @@ export class Overlay {
     this.detailState.hidden = state === ''
     this.detailState.dataset.tone = card.state
 
+    // Whichever download is actually available is the panel's primary action.
+    const hasArtwork = Boolean(source.url)
     if (source.url) {
       this.downloadCurrent.href = source.url
       this.downloadCurrent.setAttribute('download', `${source.id}.pdf`)
-      this.downloadCurrent.hidden = false
-    } else {
-      this.downloadCurrent.hidden = true
     }
+    this.downloadCurrent.hidden = !hasArtwork
+    this.downloadCurrent.classList.toggle('btn-primary', hasArtwork)
+    this.downloadTemplate.classList.toggle('btn-primary', !hasArtwork)
+    this.downloadTemplate.classList.toggle('btn-ghost', hasArtwork)
 
     this.setFoldSlider(card.getFold())
     this.upload.setSleeve(source)

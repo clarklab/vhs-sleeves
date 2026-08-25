@@ -20,7 +20,7 @@ interface SubmitResponse {
  * is re-upload because nothing visibly changed.
  */
 export class UploadPanel {
-  readonly element: HTMLElement
+  readonly element: HTMLDetailsElement
   private sleeve: SleeveSource | null = null
   private fileInput: HTMLInputElement
   private nameInput: HTMLInputElement
@@ -32,10 +32,19 @@ export class UploadPanel {
   private busy = false
 
   constructor(private onAccepted: (result: { commitSha?: string; commitUrl?: string }) => void) {
-    this.element = document.createElement('section')
+    // A disclosure rather than a permanent block: most visits to a sleeve are to
+    // look at it or fetch the working file, not to submit one. Native <details>
+    // keeps it keyboard- and screen-reader-navigable for free.
+    this.element = document.createElement('details')
     this.element.className = 'panel upload'
     this.element.innerHTML = `
-      <h3>Submit an edit</h3>
+      <summary>
+        Submit an edit
+        <svg viewBox="0 0 8 5" width="8" height="5" fill="none" aria-hidden="true">
+          <path d="M.5.5 4 4 7.5.5" stroke="currentcolor" />
+        </svg>
+      </summary>
+      <div class="upload-body">
       <label class="dropzone" tabindex="0">
         <input type="file" name="sleevePdf" accept="application/pdf,.pdf" hidden />
         <span class="dropzone-label">Choose a PDF or drop it here</span>
@@ -52,7 +61,8 @@ export class UploadPanel {
       </div>
       <p class="status" role="status"></p>
       <div class="progress" hidden><span class="progress-fill"></span></div>
-      <button class="submit btn btn-primary" type="button" disabled>Upload &amp; publish</button>
+        <button class="submit btn btn-primary" type="button" disabled>Upload &amp; publish</button>
+      </div>
     `
 
     const dropzone = this.element.querySelector<HTMLElement>('.dropzone')!
@@ -92,6 +102,9 @@ export class UploadPanel {
   }
 
   private reset(): void {
+    // Collapse again when moving between sleeves, so the drawer never carries a
+    // half-finished submission over to a different tape.
+    this.element.open = false
     this.chosen = null
     this.busy = false
     this.fileInput.value = ''

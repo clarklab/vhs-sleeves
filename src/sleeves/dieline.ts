@@ -130,9 +130,35 @@ export function panelCrop(
   }
 }
 
-/** True when a page matches the template it was cut from, within a point. */
+const REFERENCE_ASPECT = REFERENCE_PAGE.width / REFERENCE_PAGE.height
+
+/**
+ * How far a page's proportions may drift from the template's.
+ *
+ * A real 300dpi re-export of this die lands 0.008% out, so 0.1% is generous for
+ * rounding while still catching a page a few points off on one edge.
+ */
+const ASPECT_TOLERANCE = 0.001
+
+/** A 300dpi export is 4.17x; this spans roughly 18dpi to 1440dpi. */
+const MIN_SCALE = 0.25
+const MAX_SCALE = 20
+
+/**
+ * True when a page is the sleeve die-line, at any export scale.
+ *
+ * Exporting the same artboard at 300dpi rather than 72 is an ordinary thing to
+ * do and produces a page 4.17x the nominal size — still exactly this die. Since
+ * `panelCrop` scales the panel rects to whatever page it is handed, the test
+ * that matters is the proportions, not the absolute measurements. Genuinely
+ * different stock is nowhere near: US Letter is 0.77 against this die's 1.157.
+ */
 export function matchesReferencePage(widthPt: number, heightPt: number): boolean {
-  return (
-    Math.abs(widthPt - REFERENCE_PAGE.width) < 1 && Math.abs(heightPt - REFERENCE_PAGE.height) < 1
-  )
+  if (!(widthPt > 0) || !(heightPt > 0)) return false
+
+  const scale = widthPt / REFERENCE_PAGE.width
+  if (scale < MIN_SCALE || scale > MAX_SCALE) return false
+
+  const aspect = widthPt / heightPt
+  return Math.abs(aspect - REFERENCE_ASPECT) / REFERENCE_ASPECT <= ASPECT_TOLERANCE
 }

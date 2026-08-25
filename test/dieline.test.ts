@@ -106,11 +106,31 @@ describe('panelCrop', () => {
 })
 
 describe('matchesReferencePage', () => {
-  it('accepts the template and idiocracy.pdf', () => {
+  it('accepts the template at its nominal size', () => {
     expect(matchesReferencePage(866.549, 749.261)).toBe(true)
   })
 
+  it('accepts the same artboard exported at a higher resolution', () => {
+    // 300dpi rather than 72 — what Illustrator hands you by default.
+    expect(matchesReferencePage(3611, 3122)).toBe(true)
+    expect(matchesReferencePage(866.549 * 2, 749.261 * 2)).toBe(true)
+    expect(matchesReferencePage(866.549 / 2, 749.261 / 2)).toBe(true)
+  })
+
   it('rejects a page from a different die', () => {
-    expect(matchesReferencePage(612, 792)).toBe(false)
+    expect(matchesReferencePage(612, 792)).toBe(false) // US Letter
+    expect(matchesReferencePage(595, 842)).toBe(false) // A4
+  })
+
+  it('rejects a page stretched on one axis', () => {
+    // Right width, wrong height: the proportions are what identify the die.
+    expect(matchesReferencePage(866.549, 900)).toBe(false)
+    expect(matchesReferencePage(1000, 749.261)).toBe(false)
+  })
+
+  it('rejects nonsense and absurd scales', () => {
+    expect(matchesReferencePage(0, 0)).toBe(false)
+    expect(matchesReferencePage(-866.549, -749.261)).toBe(false)
+    expect(matchesReferencePage(8.66549, 7.49261)).toBe(false)
   })
 })
