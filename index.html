@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>VHS Sleeve Library</title>
+  </head>
+  <body>
+    <canvas id="stage"></canvas>
+
+    <header id="masthead">
+      <h1>VHS Sleeve Library</h1>
+      <p id="count">Loading…</p>
+    </header>
+
+    <div id="labels"></div>
+
+    <button id="back" type="button" hidden>← Library</button>
+
+    <aside id="detail" hidden>
+      <div id="detail-scroll">
+        <section class="identity">
+          <h2 id="detail-title"></h2>
+          <p id="detail-owners"></p>
+          <p id="detail-state"></p>
+        </section>
+
+        <section class="files">
+          <h3>Working files</h3>
+          <div class="file-buttons">
+            <a id="download-current" class="button" download>Download current PDF</a>
+            <a id="download-template" class="button ghost" download>Blank template</a>
+          </div>
+          <p class="hint">
+            Edit in place, keep the page size, and send it back below.
+          </p>
+        </section>
+
+        <section class="viewer-controls">
+          <h3>Viewer</h3>
+          <label for="fold">Fold <span id="fold-readout">100%</span></label>
+          <input id="fold" type="range" min="0" max="100" value="100" step="1" />
+          <button id="eject" type="button">Eject tape</button>
+        </section>
+
+        <div id="pricing-slot"></div>
+        <div id="upload-slot"></div>
+      </div>
+    </aside>
+
+    <div id="accepted" hidden>
+      <div class="accepted-card">
+        <div class="accepted-mark" aria-hidden="true"></div>
+        <h2>Got it — your sleeve is in.</h2>
+        <p class="accepted-lead">
+          <strong id="accepted-title"></strong> has been committed to the repo and the site is
+          rebuilding now.
+        </p>
+        <ol class="accepted-steps">
+          <li data-step="done">File accepted and checked against the template</li>
+          <li data-step="done">Committed to GitHub <span id="accepted-sha"></span></li>
+          <li data-step="working">Netlify is building and publishing</li>
+        </ol>
+        <p class="accepted-note">
+          This usually takes a minute or two. Come back and reload and your artwork will be
+          wrapped around the box.
+        </p>
+        <div class="accepted-actions">
+          <a id="accepted-commit" class="button ghost" target="_blank" rel="noopener" hidden
+            >View the commit</a
+          >
+          <button id="accepted-close" class="button" type="button">Back to the library</button>
+        </div>
+      </div>
+    </div>
+
+    <p id="empty" hidden>
+      No sleeves yet. Drop a PDF into <code>sleeves/</code> and reload.
+    </p>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

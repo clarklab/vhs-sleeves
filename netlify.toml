@@ -1,0 +1,25 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+  functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+[functions]
+  node_bundler = "esbuild"
+  # pdf.js is shipped as a real dependency rather than inlined — the bundler
+  # struggles with its worker/eval plumbing.
+  external_node_modules = ["pdfjs-dist"]
+
+# Sleeve PDFs are content-hashed by Vite, so a new upload gets a new URL and
+# never serves stale from cache.
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
