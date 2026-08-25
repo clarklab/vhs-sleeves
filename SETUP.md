@@ -49,21 +49,22 @@ This is the key that lets the website commit uploaded PDFs back to the repo.
 
 ---
 
-## 4. Add two environment variables
+## 4. Add one environment variable
 
-**Site configuration → Environment variables → Add a variable**, twice:
+**Site configuration → Environment variables → Add a variable:**
 
 | Key | Value |
 |---|---|
 | `GITHUB_TOKEN` | the token from step 2 |
-| `GITHUB_REPO` | `clarklab/vhs-sleeves` — exactly that, no `https://`, no `.git` |
 
-Optional: `GITHUB_BRANCH` if your default branch isn't `main`.
+That's the only one. The repo is hardcoded to `clarklab/vhs-sleeves` in the code — it's a
+public repo name, not a secret, so there's nothing to configure. (`GITHUB_REPO` and
+`GITHUB_BRANCH` still work as overrides if you ever point this at somewhere else.)
 
 Then **Deploys → Trigger deploy → Clear cache and deploy site**. Environment variables
 only reach the functions on a fresh deploy.
 
-☐ Both added, site redeployed
+☐ Added, site redeployed
 
 ---
 
@@ -127,7 +128,7 @@ place to edit. It'll show up as an "awaiting artwork" box its owner can upload t
 
 # What I need from you
 
-Steps 2, 3 and 4 — the token, connecting Netlify, and the two environment variables.
+Steps 2, 3 and 4 — make the token, connect Netlify, paste the token in.
 
 The token never touches the code and never ships to the browser; anything in the frontend
 bundle is readable by anyone who opens devtools, which would make it a public write key to

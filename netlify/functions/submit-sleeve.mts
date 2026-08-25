@@ -16,6 +16,15 @@ import { ALLOWED_SLEEVE_IDS } from '../../src/sleeves/registry'
  * be a public write key to the repo.
  */
 
+/**
+ * The repo uploads are committed to.
+ *
+ * Safe to hardcode — it is a public repository name, not a secret, and pinning it
+ * means the only thing Netlify has to be told is the token. The env var still wins
+ * if it is set, so a fork or a scratch repo needs no code change.
+ */
+export const TARGET_REPO = process.env.GITHUB_REPO || 'clarklab/vhs-sleeves'
+
 interface SubmitBody {
   sleeveId?: unknown
   submittedBy?: unknown
@@ -32,14 +41,14 @@ export default async (req: Request, _context: Context) => {
   if (req.method !== 'POST') return json(405, { error: 'Use POST.' })
 
   const token = process.env.GITHUB_TOKEN
-  const repo = process.env.GITHUB_REPO
+  const repo = TARGET_REPO
   const branch = process.env.GITHUB_BRANCH || 'main'
 
-  if (!token || !repo) {
+  if (!token) {
     return json(500, {
       error:
-        'Uploads are not configured yet. GITHUB_TOKEN and GITHUB_REPO need to be set in ' +
-        'the Netlify site environment.',
+        'Uploads are not configured yet. GITHUB_TOKEN needs to be set in the Netlify ' +
+        'site environment.',
     })
   }
 

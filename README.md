@@ -44,7 +44,8 @@ measuring exactly 866.549 × 749.261pt — that format check is the only gate, s
 server-side where `curl` can't skip it. It's then committed to the repo by a Netlify
 function and published on the next build, about two minutes.
 
-The GitHub token lives only in the Netlify site environment, never in the bundle.
+Commits go to `clarklab/vhs-sleeves`, hardcoded in the function. The GitHub token is the
+one thing that isn't — it lives only in the Netlify site environment, never in the bundle.
 **First-time setup: [SETUP.md](SETUP.md).**
 
 ## Using it

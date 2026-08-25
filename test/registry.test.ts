@@ -80,3 +80,13 @@ describe('titleFromPath', () => {
     expect(titleFromPath('sleeves/VHS-2025-01-29.pdf')).toBe('VHS 2025 01 29')
   })
 })
+
+describe('upload target', () => {
+  it('points at the project repo, in owner/name form', async () => {
+    const { TARGET_REPO } = await import('../netlify/functions/submit-sleeve.mts')
+    expect(TARGET_REPO).toBe('clarklab/vhs-sleeves')
+    // A typo here would only surface as a confusing GitHub 404 on the first upload.
+    expect(TARGET_REPO).toMatch(/^[\w.-]+\/[\w.-]+$/)
+    expect(TARGET_REPO).not.toMatch(/^https?:|\.git$/)
+  })
+})
