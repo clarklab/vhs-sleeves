@@ -85,6 +85,16 @@ export const BOX = boxDimensions()
 /** Cardboard thickness, in cm. Gives the fold seams something to catch light on. */
 export const STOCK_THICKNESS = 0.045
 
+/**
+ * The thumb notch — the semicircle bitten out of the bottom edge of each side
+ * panel, which is what you hook a finger into to push the tape back out.
+ *
+ * Measured off the template's bezier clusters: both arcs sit at x 79.35 and
+ * 443.81, which are the two side panels' centre lines, rising from the trim edge
+ * at y 43.3 to an apex at y 70.26 — a semicircle of radius 26.96pt.
+ */
+export const THUMB_NOTCH_RADIUS = ptToCm(26.96)
+
 export interface CropRect {
   sx: number
   sy: number

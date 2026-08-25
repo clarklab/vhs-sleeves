@@ -57,6 +57,9 @@ export class Overlay {
       const t = Number(this.foldInput.value) / 100
       this.foldReadout.textContent = `${this.foldInput.value}%`
       scene.focused?.setFold(t)
+      // The flat sheet is far wider than the folded box — pull the camera back
+      // with it so unfolding doesn't run off the edges of the screen.
+      scene.reframeForFold()
     })
 
     this.ejectButton.addEventListener('click', () => {

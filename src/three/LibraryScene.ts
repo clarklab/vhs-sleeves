@@ -22,6 +22,8 @@ import { SleeveCard } from './SleeveCard'
 const easeInOutCubic = (t: number) =>
   t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
 
+const mix = (from: number, to: number, t: number) => from + (to - from) * t
+
 const GAP = 4.5
 const FLY_DURATION = 0.9
 
@@ -177,7 +179,10 @@ export class LibraryScene {
    * Depends on the viewport aspect and on how much of the right edge the detail
    * panel covers, so it is recomputed on resize rather than fixed at focus time.
    */
-  private framingFor(card: SleeveCard): { position: Vector3; target: Vector3 } {
+  private framingFor(
+    card: SleeveCard,
+    fold: number = card.getFold(),
+  ): { position: Vector3; target: Vector3 } {
     const fov = (this.camera.fov * Math.PI) / 180
     const tan = Math.tan(fov / 2)
     const viewW = this.canvas.clientWidth || 1
@@ -187,23 +192,56 @@ export class LibraryScene {
     // the sleeve is framed into whatever rectangle is actually still visible.
     const insetRight = Math.min(this.reservedRightPx(), viewW * 0.6)
     const insetBottom = Math.min(this.reservedBottomPx(), viewH * 0.8)
+    const bandW = Math.max(viewW - insetRight, 1)
     const bandH = Math.max(viewH - insetBottom, 1)
 
-    // Fill ~78% of the visible band's height rather than 78% of the window —
-    // otherwise a bottom sheet just parks the box behind itself.
-    const distance = (BOX.height * viewH) / (2 * tan * 0.78 * bandH)
+    // Unfolded, the sheet is two and a half times wider than the box and taller
+    // by the hood, so the framing has to open up as the fold slider comes back.
+    const spanW = mix(2 * BOX.width + 2 * BOX.depth, BOX.width, fold)
+    const spanH = mix(BOX.height + BOX.hoodHeight, BOX.height, fold)
 
-    // Looking right of the box slides it left; looking below it slides it up.
+    // Fill ~78% of the visible band rather than 78% of the window — otherwise a
+    // bottom sheet just parks the sleeve behind itself.
+    const forHeight = (spanH * viewH) / (2 * tan * 0.78 * bandH)
+    const forWidth = (spanW * viewW) / (2 * tan * this.camera.aspect * 0.84 * bandW)
+    const distance = Math.max(forHeight, forWidth)
+
+    // Looking right of the sleeve slides it left; looking below it slides it up.
     const worldW = 2 * distance * tan * this.camera.aspect
     const worldH = 2 * distance * tan
     const shiftX = (insetRight / 2 / viewW) * worldW
     const shiftY = (insetBottom / 2 / viewH) * worldH
 
     const target = card.position.clone().add(new Vector3(shiftX, -shiftY - BOX.height * 0.02, 0))
+    this.controls.maxDistance = Math.max(this.controls.maxDistance, distance * 1.3)
     return {
       position: target.clone().add(new Vector3(distance * 0.3, distance * 0.12, distance * 0.95)),
       target,
     }
+  }
+
+  /**
+   * Re-fit the framing after the fold changes, keeping whatever angle the viewer
+   * has orbited to — only the distance and the look-at point move.
+   */
+  reframeForFold(): void {
+    if (!this.focused) return
+    const { position, target } = this.framingFor(this.focused)
+
+    // Mid-flight, retarget the flight rather than ignoring the change — the
+    // slider is reachable the moment a card opens, before the camera lands.
+    if (this.flight) {
+      this.flight.toPos.copy(position)
+      this.flight.toTarget.copy(target)
+      return
+    }
+
+    const radius = position.distanceTo(target)
+    const direction = this.camera.position.clone().sub(this.controls.target)
+    if (direction.lengthSq() < 1e-6) return
+    direction.normalize()
+    this.controls.target.copy(target)
+    this.camera.position.copy(target).addScaledVector(direction, radius)
   }
 
   /** Supplied by the overlay — how much of each edge the detail panel covers. */
