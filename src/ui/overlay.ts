@@ -82,10 +82,23 @@ export class Overlay {
     scene.onFocusChange((card) => this.showDetail(card))
   }
 
-  /** Width the 3D view should keep clear so the box isn't behind the panel. */
-  get detailInsetPx(): number {
-    if (window.innerWidth < 900) return 0
-    return this.detail.getBoundingClientRect().width
+  /**
+   * How much of the viewport the detail panel is covering, so the scene can
+   * frame a sleeve into what's left. It's a right-hand sidebar on desktop and a
+   * bottom sheet on mobile, so the inset moves between the two axes.
+   */
+  private get panelBox(): DOMRect | null {
+    return this.detail.hidden ? null : this.detail.getBoundingClientRect()
+  }
+
+  get detailInsetRightPx(): number {
+    const box = this.panelBox
+    return box && window.innerWidth >= 900 ? box.width : 0
+  }
+
+  get detailInsetBottomPx(): number {
+    const box = this.panelBox
+    return box && window.innerWidth < 900 ? box.height : 0
   }
 
   registerCards(cards: SleeveCard[]): void {
@@ -109,7 +122,7 @@ export class Overlay {
     const ready = cards.filter((c) => c.state === 'ready').length
     const awaiting = cards.filter((c) => c.state === 'awaiting').length
     const failed = cards.filter((c) => c.state === 'failed').length
-    const parts = [`${cards.length} ${cards.length === 1 ? 'sleeve' : 'sleeves'}`]
+    const parts = [`${cards.length} ${cards.length === 1 ? 'release' : 'releases'}`]
     if (awaiting) parts.push(`${awaiting} awaiting artwork`)
     if (failed) parts.push(`${failed} failed`)
     else if (ready < cards.length - awaiting) parts.push('rendering…')
@@ -130,9 +143,18 @@ export class Overlay {
 
     const { source } = card
     this.detailTitle.textContent = source.title
-    this.detailOwners.innerHTML =
-      `<span class="owner-label">Project ${source.owners.length === 1 ? 'owner' : 'owners'}</span>` +
-      `<span class="owner-names">${formatOwners(source.owners)}</span>`
+    // Owners read as people rather than a metadata string — this is the one
+    // thing on the panel that says whose desk the tape is sitting on.
+    this.detailOwners.innerHTML = source.owners.length
+      ? source.owners
+          .map(
+            (name) =>
+              `<span class="owner"><span class="owner-initial" aria-hidden="true">${name
+                .charAt(0)
+                .toUpperCase()}</span>${name}</span>`,
+          )
+          .join('')
+      : '<span class="owner-none">Unassigned</span>'
 
     const state = STATE_TEXT[card.state] ?? ''
     this.detailState.textContent = state

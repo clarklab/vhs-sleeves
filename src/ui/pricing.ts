@@ -24,23 +24,25 @@ export class PricingPanel {
 
   constructor() {
     this.element = document.createElement('section')
-    this.element.className = 'pricing'
+    this.element.className = 'panel pricing'
     this.element.innerHTML = `
-      <header class="pricing-head">
+      <div class="panel-head">
         <h3>The math</h3>
-        <label class="price-pick">
-          <span>Sell at</span>
-          <select aria-label="Sale price per tape">
+        <span class="price-pick">
+          <select id="sale-price" name="salePrice" aria-label="Sale price per tape">
             ${SALE_PRICE_OPTIONS.map(
               (price) =>
-                `<option value="${price}"${price === DEFAULT_SALE_PRICE ? ' selected' : ''}>$${price}</option>`,
+                `<option value="${price}"${price === DEFAULT_SALE_PRICE ? ' selected' : ''}>$${price} each</option>`,
             ).join('')}
           </select>
-        </label>
-      </header>
+          <svg viewBox="0 0 8 5" width="8" height="5" fill="none" aria-hidden="true">
+            <path d="M.5.5 4 4 7.5.5" stroke="currentcolor" />
+          </svg>
+        </span>
+      </div>
       <p class="hero"></p>
       <div class="bar" role="img"></div>
-      <ul class="legend"></ul>
+      <ul class="legend" role="list"></ul>
       <dl class="tiles"></dl>
     `
 
@@ -62,8 +64,8 @@ export class PricingPanel {
     const data = economicsFor(this.salePrice)
 
     this.hero.innerHTML =
-      `<strong>${money(data.profitPerTape)}</strong> to the artist per tape` +
-      `<span> · ${money(data.costBasis)} cost basis</span>`
+      `<span class="hero-value">${money(data.profitPerTape)}</span>` +
+      `<span class="hero-label">to the artist, per tape · ${money(data.costBasis)} cost basis</span>`
 
     this.bar.setAttribute(
       'aria-label',
@@ -91,7 +93,7 @@ export class PricingPanel {
 
   private renderTiles(data: Economics): void {
     const rows: [string, string][] = [
-      [`Run of ${data.setSize}`, money(data.setRevenue)],
+      [`${data.setSize} tapes`, money(data.setRevenue)],
       ['Costs', money(data.setCosts)],
       ['Artist take', money(data.setProfit)],
     ]

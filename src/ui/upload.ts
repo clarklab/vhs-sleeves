@@ -33,19 +33,26 @@ export class UploadPanel {
 
   constructor(private onAccepted: (result: { commitSha?: string; commitUrl?: string }) => void) {
     this.element = document.createElement('section')
-    this.element.className = 'upload'
+    this.element.className = 'panel upload'
     this.element.innerHTML = `
       <h3>Submit an edit</h3>
       <label class="dropzone" tabindex="0">
-        <input type="file" accept="application/pdf,.pdf" hidden />
+        <input type="file" name="sleevePdf" accept="application/pdf,.pdf" hidden />
         <span class="dropzone-label">Choose a PDF or drop it here</span>
       </label>
       <div class="fields">
-        <input class="who" type="text" placeholder="Your name (optional)" autocomplete="name" />
+        <input
+          class="who"
+          name="submittedBy"
+          type="text"
+          placeholder="Your name (optional)"
+          aria-label="Your name (optional)"
+          autocomplete="name"
+        />
       </div>
       <p class="status" role="status"></p>
       <div class="progress" hidden><span class="progress-fill"></span></div>
-      <button class="submit" type="button" disabled>Upload &amp; publish</button>
+      <button class="submit btn btn-primary" type="button" disabled>Upload &amp; publish</button>
     `
 
     const dropzone = this.element.querySelector<HTMLElement>('.dropzone')!
@@ -92,6 +99,7 @@ export class UploadPanel {
     this.progressFill.style.width = '0%'
     this.setStatus('', null)
     this.element.querySelector('.dropzone-label')!.textContent = 'Choose a PDF or drop it here'
+    this.element.querySelector('.dropzone')!.classList.remove('has-file')
     this.refreshButton()
   }
 
@@ -118,7 +126,9 @@ export class UploadPanel {
 
     this.chosen = file
     const kb = Math.round(file.size / 1024)
-    this.element.querySelector('.dropzone-label')!.textContent = `${file.name} · ${kb}KB`
+    this.element.querySelector('.dropzone')!.classList.add('has-file')
+    this.element.querySelector('.dropzone-label')!.innerHTML =
+      `${file.name}<span class="dropzone-sub">${kb}KB · click to replace</span>`
     this.setStatus('Page size matches the template. Ready to send.', 'ok')
     this.refreshButton()
   }

@@ -3,48 +3,50 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>VHS Sleeve Library</title>
+    <title>VHS Garage Library</title>
   </head>
   <body>
     <canvas id="stage"></canvas>
 
     <header id="masthead">
-      <h1>VHS Sleeve Library</h1>
+      <h1>VHS Garage Library</h1>
       <p id="count">Loading…</p>
     </header>
 
     <div id="labels"></div>
 
-    <button id="back" type="button" hidden>← Library</button>
-
     <aside id="detail" hidden>
-      <div id="detail-scroll">
-        <section class="identity">
+      <header id="detail-head">
+        <div class="head-row">
           <h2 id="detail-title"></h2>
-          <p id="detail-owners"></p>
-          <p id="detail-state"></p>
-        </section>
+          <button id="back" class="btn btn-sm btn-ghost" type="button">Library</button>
+        </div>
+        <div id="detail-owners"></div>
+        <p id="detail-state"></p>
+      </header>
 
-        <section class="files">
+      <div id="detail-scroll">
+        <section class="panel">
           <h3>Working files</h3>
           <div class="file-buttons">
-            <a id="download-current" class="button" download>Download current PDF</a>
-            <a id="download-template" class="button ghost" download>Blank template</a>
+            <a id="download-current" class="btn" download>Download current PDF</a>
+            <a id="download-template" class="btn btn-ghost" download>Blank template</a>
           </div>
-          <p class="hint">
-            Edit in place, keep the page size, and send it back below.
-          </p>
+          <p class="hint">Edit in place and keep the page size — anything else is refused.</p>
         </section>
 
-        <section class="viewer-controls">
-          <h3>Viewer</h3>
-          <label for="fold">Fold <span id="fold-readout">100%</span></label>
-          <input id="fold" type="range" min="0" max="100" value="100" step="1" />
-          <button id="eject" type="button">Eject tape</button>
-        </section>
-
-        <div id="pricing-slot"></div>
         <div id="upload-slot"></div>
+        <div id="pricing-slot"></div>
+
+        <section class="panel">
+          <h3>Viewer</h3>
+          <div class="slider-row">
+            <label for="fold">Fold</label>
+            <input id="fold" name="fold" type="range" min="0" max="100" value="100" step="1" />
+            <span id="fold-readout">100%</span>
+          </div>
+          <button id="eject" class="btn" type="button">Eject tape</button>
+        </section>
       </div>
     </aside>
 
@@ -66,16 +68,18 @@
           wrapped around the box.
         </p>
         <div class="accepted-actions">
-          <a id="accepted-commit" class="button ghost" target="_blank" rel="noopener" hidden
+          <a id="accepted-commit" class="btn btn-ghost" target="_blank" rel="noopener" hidden
             >View the commit</a
           >
-          <button id="accepted-close" class="button" type="button">Back to the library</button>
+          <button id="accepted-close" class="btn btn-primary" type="button">
+            Back to the library
+          </button>
         </div>
       </div>
     </div>
 
     <p id="empty" hidden>
-      No sleeves yet. Drop a PDF into <code>sleeves/</code> and reload.
+      No releases yet. Drop a PDF into <code>sleeves/</code> and reload.
     </p>
 
     <script type="module" src="/src/main.ts"></script>

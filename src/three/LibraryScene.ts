@@ -48,6 +48,7 @@ export class LibraryScene {
   private pointer = new Vector2()
   private pointerDownAt = new Vector2()
   private flight: CameraFlight | null = null
+  private fog: Fog
   private gridHome = { position: new Vector3(), target: new Vector3() }
 
   constructor(private canvas: HTMLCanvasElement) {
@@ -61,7 +62,8 @@ export class LibraryScene {
 
     this.scene = new Scene()
     this.scene.background = new Color('#0b0b0f')
-    this.scene.fog = new Fog('#0b0b0f', 60, 150)
+    this.fog = new Fog('#0b0b0f', 60, 150)
+    this.scene.fog = this.fog
 
     // RoomEnvironment gives the card stock and cassette plastic something to
     // reflect without shipping an HDRI.
@@ -115,10 +117,15 @@ export class LibraryScene {
   layout(): void {
     const n = this.cards.length
     if (n === 0) return
-    const columns = Math.min(n, Math.max(1, Math.ceil(Math.sqrt(n * 1.6))))
+    // A tall, narrow window can't hold three columns without the labels colliding.
+    const columns =
+      this.camera.aspect < 0.75
+        ? Math.min(n, 2)
+        : Math.min(n, Math.max(1, Math.ceil(Math.sqrt(n * 1.6))))
     const rows = Math.ceil(n / columns)
     const stepX = BOX.width + GAP
-    const stepY = BOX.height + GAP * 0.8
+    // Rows need clearance for two lines of label under each box.
+    const stepY = BOX.height + GAP * 1.7
 
     this.cards.forEach((card, i) => {
       const col = i % columns
@@ -171,27 +178,37 @@ export class LibraryScene {
    * panel covers, so it is recomputed on resize rather than fixed at focus time.
    */
   private framingFor(card: SleeveCard): { position: Vector3; target: Vector3 } {
-    // Fill ~78% of the viewport height.
     const fov = (this.camera.fov * Math.PI) / 180
-    const distance = BOX.height / 2 / (0.78 * Math.tan(fov / 2))
+    const tan = Math.tan(fov / 2)
+    const viewW = this.canvas.clientWidth || 1
+    const viewH = this.canvas.clientHeight || 1
 
-    // Nudging the look-at point right slides the box left by the same amount, so
-    // it sits centred in the space actually visible beside the panel.
-    const inset = this.reservedRightPx()
-    const visibleWidth = 2 * distance * Math.tan(fov / 2) * this.camera.aspect
-    const shift = this.canvas.clientWidth
-      ? (inset / 2 / this.canvas.clientWidth) * visibleWidth
-      : 0
+    // The panel covers the right edge on desktop and the bottom on mobile, so
+    // the sleeve is framed into whatever rectangle is actually still visible.
+    const insetRight = Math.min(this.reservedRightPx(), viewW * 0.6)
+    const insetBottom = Math.min(this.reservedBottomPx(), viewH * 0.8)
+    const bandH = Math.max(viewH - insetBottom, 1)
 
-    const target = card.position.clone().add(new Vector3(shift, -BOX.height * 0.04, 0))
+    // Fill ~78% of the visible band's height rather than 78% of the window —
+    // otherwise a bottom sheet just parks the box behind itself.
+    const distance = (BOX.height * viewH) / (2 * tan * 0.78 * bandH)
+
+    // Looking right of the box slides it left; looking below it slides it up.
+    const worldW = 2 * distance * tan * this.camera.aspect
+    const worldH = 2 * distance * tan
+    const shiftX = (insetRight / 2 / viewW) * worldW
+    const shiftY = (insetBottom / 2 / viewH) * worldH
+
+    const target = card.position.clone().add(new Vector3(shiftX, -shiftY - BOX.height * 0.02, 0))
     return {
       position: target.clone().add(new Vector3(distance * 0.3, distance * 0.12, distance * 0.95)),
       target,
     }
   }
 
-  /** Supplied by the overlay — how much of the right edge the panel occupies. */
+  /** Supplied by the overlay — how much of each edge the detail panel covers. */
   reservedRightPx: () => number = () => 0
+  reservedBottomPx: () => number = () => 0
 
   unfocus(): void {
     if (!this.focused) return
@@ -285,6 +302,13 @@ export class LibraryScene {
 
       for (const card of this.cards) card.update(delta)
       this.controls.update()
+
+      // Fog has to track the camera. Parked at a fixed depth it silently eats
+      // the whole shelf as soon as the grid pulls back past it — which is what
+      // a narrow window does.
+      const focusDepth = this.camera.position.distanceTo(this.controls.target)
+      this.fog.near = focusDepth * 0.9
+      this.fog.far = focusDepth * 2.6
       onFrame?.(delta)
       this.renderer.render(this.scene, this.camera)
     })

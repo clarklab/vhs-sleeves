@@ -1,4 +1,4 @@
-# VHS Sleeve Library
+# VHS Garage Library
 
 A 3D viewer for print-ready VHS cover sleeves. Each flat PDF folds into a box you can
 spin, unfold back to flat, and slide a cassette into.

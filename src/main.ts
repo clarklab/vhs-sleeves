@@ -8,8 +8,9 @@ const scene = new LibraryScene(canvas)
 const overlay = new Overlay(scene)
 
 // The camera frames a focused sleeve clear of the detail panel; only the overlay
-// knows how wide that panel currently is.
-scene.reservedRightPx = () => overlay.detailInsetPx
+// knows how much of the viewport that panel is currently covering.
+scene.reservedRightPx = () => overlay.detailInsetRightPx
+scene.reservedBottomPx = () => overlay.detailInsetBottomPx
 
 const cards = scene.addSleeves(discoverSleeves())
 overlay.registerCards(cards)
