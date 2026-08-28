@@ -35,6 +35,7 @@ export class Overlay {
   private detailState = el<HTMLParagraphElement>('detail-state')
   private downloadCurrent = el<HTMLAnchorElement>('download-current')
   private downloadTemplate = el<HTMLAnchorElement>('download-template')
+  private templateLink = el<HTMLAnchorElement>('template-link')
   private foldInput = el<HTMLInputElement>('fold')
   private foldReadout = el<HTMLSpanElement>('fold-readout')
   private ejectButton = el<HTMLButtonElement>('eject')
@@ -48,8 +49,10 @@ export class Overlay {
     el('pricing-slot').replaceWith(this.pricing.element)
     el('upload-slot').replaceWith(this.upload.element)
 
-    this.downloadTemplate.href = templateUrl
-    this.downloadTemplate.setAttribute('download', 'vhs-sleeve-template.pdf')
+    for (const link of [this.downloadTemplate, this.templateLink]) {
+      link.href = templateUrl
+      link.setAttribute('download', 'vhs-sleeve-template.pdf')
+    }
 
     this.backButton.addEventListener('click', () => scene.unfocus())
 
@@ -141,6 +144,7 @@ export class Overlay {
   private showDetail(card: SleeveCard | null): void {
     this.detail.hidden = card === null
     this.backButton.hidden = card === null
+    this.templateLink.hidden = card !== null
     this.labelHost.style.opacity = card ? '0' : '1'
     if (!card) return
 

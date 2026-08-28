@@ -90,6 +90,30 @@ h3 {
   font-variant-numeric: tabular-nums;
 }
 
+/* The one action that isn't about a particular sleeve: get the blank die-line.
+   Sits opposite the masthead and steps aside when a sleeve is open, since the
+   detail panel takes that corner and carries its own copy of this link. */
+#template-link {
+  position: fixed;
+  top: 22px;
+  right: 26px;
+  z-index: 5;
+  padding-left: 9px;
+  background: var(--panel);
+}
+
+#template-link svg {
+  color: var(--ink-3);
+}
+
+#template-link:hover svg {
+  color: var(--ink);
+}
+
+#template-link[hidden] {
+  display: none;
+}
+
 /* ── grid labels ────────────────────────────────────────────────────────── */
 #labels {
   position: fixed;
