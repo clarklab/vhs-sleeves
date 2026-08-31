@@ -1,5 +1,23 @@
+import { createRequire } from 'node:module'
+import { dirname } from 'node:path'
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs'
 import { REFERENCE_PAGE, matchesReferencePage } from '../../src/sleeves/dieline'
+
+/**
+ * Where pdf.js can find its standard font data on disk.
+ *
+ * Without this it tries to fetch the fonts, which works in a browser and fails
+ * inside a bundled function — and the failure surfaces as "could not be opened"
+ * on a PDF the browser had already opened happily a second earlier.
+ */
+function standardFontDataUrl(): string | undefined {
+  try {
+    const require = createRequire(import.meta.url)
+    return `${dirname(require.resolve('pdfjs-dist/package.json'))}/standard_fonts/`
+  } catch {
+    return undefined
+  }
+}
 
 /**
  * The format gate.
@@ -24,11 +42,27 @@ export async function checkSleeveFormat(bytes: Uint8Array): Promise<string | nul
   try {
     doc = await getDocument({
       data: bytes,
+      // Only the page tree and MediaBox are needed here, so every font path is
+      // turned off rather than left to find resources a function doesn't have.
       isEvalSupported: false,
+      disableFontFace: true,
       useSystemFonts: false,
+      standardFontDataUrl: standardFontDataUrl(),
     }).promise
-  } catch {
-    return 'That PDF could not be opened. Try re-exporting it.'
+  } catch (cause) {
+    const name = (cause as { name?: string })?.name ?? 'Error'
+    const detail = (cause as { message?: string })?.message ?? String(cause)
+    // Swallowing this was a dead end: the message could not tell an encrypted
+    // file from a truncated one from a missing resource on the server side.
+    console.error('[sleeve] pdf.js could not open the upload:', name, detail)
+
+    if (name === 'PasswordException') {
+      return 'That PDF is password-protected. Export it again without encryption.'
+    }
+    if (name === 'InvalidPDFException') {
+      return 'That PDF looks damaged or incomplete. Try re-exporting it.'
+    }
+    return `That PDF could not be opened — ${name}: ${detail.slice(0, 140)}`
   }
 
   try {

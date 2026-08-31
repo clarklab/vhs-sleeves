@@ -48,7 +48,14 @@ export async function validateSleevePdf(file: File): Promise<ValidationResult> {
   let doc: pdfjs.PDFDocumentProxy
   try {
     doc = await pdfjs.getDocument({ data: bytes.slice() }).promise
-  } catch {
+  } catch (cause) {
+    const name = (cause as { name?: string })?.name ?? 'Error'
+    if (name === 'PasswordException') {
+      return {
+        ok: false,
+        message: 'That PDF is password-protected. Export it again without encryption.',
+      }
+    }
     return { ok: false, message: 'That PDF could not be opened. Try re-exporting it.' }
   }
 
