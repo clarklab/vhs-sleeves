@@ -1,13 +1,13 @@
 import {
-  ACESFilmicToneMapping,
+  AmbientLight,
   Clock,
   Color,
   DirectionalLight,
   Fog,
-  HemisphereLight,
   PMREMGenerator,
   PerspectiveCamera,
   Raycaster,
+  NeutralToneMapping,
   Scene,
   Vector2,
   Vector3,
@@ -56,11 +56,13 @@ export class LibraryScene {
   constructor(private canvas: HTMLCanvasElement) {
     this.renderer = new WebGLRenderer({ canvas, antialias: true })
     this.renderer.setPixelRatio(Math.min(devicePixelRatio, 2))
-    this.renderer.toneMapping = ACESFilmicToneMapping
-    // Printed artwork is already the brightest thing in frame. Overlight it and
-    // ACES rolls the highlights off to a washed-out cream — the yellows go pale
-    // and a flat colour reads as white. Keep the total budget close to 1.0.
-    this.renderer.toneMappingExposure = 0.98
+    // ACES is a film-emulation curve: it desaturates on the way to white, which
+    // is flattering on a photograph and wrong on printed artwork — it turned the
+    // yellows to cream and the Clockmaster spiral to a pastel of itself. Neutral
+    // (Khronos PBR Neutral) holds hue and saturation and only compresses the
+    // extreme highlights, which is exactly what a colour proof wants.
+    this.renderer.toneMapping = NeutralToneMapping
+    this.renderer.toneMappingExposure = 1
 
     this.scene = new Scene()
     this.scene.background = new Color('#0b0b0f')
@@ -71,16 +73,26 @@ export class LibraryScene {
     // reflect without shipping an HDRI.
     const pmrem = new PMREMGenerator(this.renderer)
     this.scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
-    this.scene.environmentIntensity = 0.34
+    // A room reflection on matte card reads as a grey sheen laid over the ink.
+    this.scene.environmentIntensity = 0.08
     pmrem.dispose()
 
-    this.scene.add(new HemisphereLight('#cfd6ff', '#141118', 0.28))
-    const key = new DirectionalLight('#fff4e6', 1.15)
-    key.position.set(6, 12, 14)
+    // Every light is neutral white. The old rig lit one side warm and the other
+    // cool, and a surface caught between two tinted lights loses its own colour
+    // — the mix greys it out. Shape comes from direction and falloff instead.
+    //
+    // The total matters more than any one light. These sum to ~1.2x albedo on a
+    // panel facing the key and ~0.7x on one turned away from it. Piling on more
+    // was the original mistake: past 1.0 every channel saturates toward white,
+    // and clipping to white IS desaturation — the old rig hit 2.8x, which turned
+    // anything brighter than a mid-tone into paper.
+    this.scene.add(new AmbientLight('#ffffff', 0.22))
+    const key = new DirectionalLight('#ffffff', 0.5)
+    key.position.set(5, 10, 14)
     this.scene.add(key)
-    const rim = new DirectionalLight('#7f9cff', 0.42)
-    rim.position.set(-9, 4, -8)
-    this.scene.add(rim)
+    const fill = new DirectionalLight('#ffffff', 0.18)
+    fill.position.set(-9, 3, -7)
+    this.scene.add(fill)
 
     this.camera = new PerspectiveCamera(42, 1, 0.1, 500)
     this.controls = new OrbitControls(this.camera, canvas)
@@ -345,8 +357,8 @@ export class LibraryScene {
       // the whole shelf as soon as the grid pulls back past it — which is what
       // a narrow window does.
       const focusDepth = this.camera.position.distanceTo(this.controls.target)
-      this.fog.near = focusDepth * 0.9
-      this.fog.far = focusDepth * 2.6
+      this.fog.near = focusDepth * 1.15
+      this.fog.far = focusDepth * 4
       onFrame?.(delta)
       this.renderer.render(this.scene, this.camera)
     })

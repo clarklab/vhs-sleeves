@@ -230,8 +230,22 @@ export class SleeveBox extends Group {
 
     const inside = new MeshStandardMaterial({ color: interior, roughness: 0.95, metalness: 0 })
     const outside = texture
-      ? new MeshStandardMaterial({ map: texture, roughness: 0.55, metalness: 0.02 })
-      : new MeshStandardMaterial({ color: '#3a3a40', roughness: 0.8 })
+      ? new MeshStandardMaterial({
+          map: texture,
+          // The artwork also lights itself, a little. A lit-only panel can only
+          // reach its true colour where it faces the key light head-on, so every
+          // other face renders as a darker, greyer version of the print. This
+          // floor is the ink's own colour, unaffected by which way the panel is
+          // turned, with the lights supplying the rest and the shading.
+          emissive: 0xffffff,
+          emissiveMap: texture,
+          emissiveIntensity: 0.4,
+          // Printed card is matte: no metalness, and little of the room in it.
+          roughness: 0.88,
+          metalness: 0,
+          envMapIntensity: 0.2,
+        })
+      : new MeshStandardMaterial({ color: '#3a3a40', roughness: 0.85, metalness: 0 })
 
     this.materials.push(inside, outside)
     // Both paths put the printed face last: BoxGeometry order is +x, -x, +y, -y,
