@@ -8,9 +8,9 @@
 
 [functions]
   node_bundler = "esbuild"
-  # pdf.js is shipped as a real dependency rather than inlined — the bundler
-  # struggles with its worker/eval plumbing.
-  external_node_modules = ["pdfjs-dist"]
+  # pdf.js is bundled in rather than left as a runtime dependency. Shipping it
+  # as an external module meant the function looked for pdf.worker.mjs on disk
+  # at runtime and did not find it; inlined, there is nothing to look up.
 
 # Sleeve PDFs are content-hashed by Vite, so a new upload gets a new URL and
 # never serves stale from cache.

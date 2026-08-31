@@ -1,7 +1,20 @@
 import { createRequire } from 'node:module'
 import { dirname } from 'node:path'
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs'
+import * as pdfjsWorker from 'pdfjs-dist/legacy/build/pdf.worker.mjs'
 import { REFERENCE_PAGE, matchesReferencePage } from '../../src/sleeves/dieline'
+
+/**
+ * Hand pdf.js its worker directly.
+ *
+ * In Node, pdf.js always runs the worker on the main thread and reaches for it
+ * with `await import("./pdf.worker.mjs")` — a dynamic specifier no bundler can
+ * follow, so the file never shipped and every upload died with "Setting up fake
+ * worker failed". It checks `globalThis.pdfjsWorker` first, so assigning the
+ * statically-imported module skips that import entirely; the static form is also
+ * what lets the bundler see the worker and include it.
+ */
+;(globalThis as { pdfjsWorker?: unknown }).pdfjsWorker ??= pdfjsWorker
 
 /**
  * Where pdf.js can find its standard font data on disk.
