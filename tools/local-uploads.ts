@@ -29,6 +29,18 @@ export function localUploads(): Plugin {
           res.end(JSON.stringify(body))
         }
 
+        // Mirrors the deployed function's health check, so the same URL answers
+        // in both places — it just reports where an upload would land locally.
+        if (req.method === 'GET') {
+          return send(200, {
+            endpoint: 'submit-sleeve',
+            mode: 'local dev',
+            writesTo: 'sleeves/<id>.pdf on disk',
+            tokenConfigured: false,
+            hint: 'Local uploads write to disk and never reach GitHub.',
+          })
+        }
+
         if (req.method !== 'POST') return send(405, { error: 'Use POST.' })
 
         const chunks: Buffer[] = []

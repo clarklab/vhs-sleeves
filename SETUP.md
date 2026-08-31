@@ -51,20 +51,55 @@ This is the key that lets the website commit uploaded PDFs back to the repo.
 
 ## 4. Add one environment variable
 
-**Site configuration → Environment variables → Add a variable:**
+**Site configuration → Environment variables → Add a variable → Add a single variable:**
 
 | Key | Value |
 |---|---|
 | `GITHUB_TOKEN` | the token from step 2 |
 
-That's the only one. The repo is hardcoded to `clarklab/vhs-sleeves` in the code — it's a
-public repo name, not a secret, so there's nothing to configure. (`GITHUB_REPO` and
-`GITHUB_BRANCH` still work as overrides if you ever point this at somewhere else.)
+Two settings on that screen matter, and getting either wrong produces the *same* "Uploads
+are not configured yet" error:
 
-Then **Deploys → Trigger deploy → Clear cache and deploy site**. Environment variables
-only reach the functions on a fresh deploy.
+- **Scopes: leave it on "All scopes."** If you narrow it to Builds only, the function
+  can't see the variable — the build can, which is the confusing part.
+- **Deploy contexts: "All deploy contexts"** (or at least Production).
 
-☐ Added, site redeployed
+That's the only variable. The repo is hardcoded to `clarklab/vhs-sleeves` in the code —
+a public repo name, not a secret. (`GITHUB_REPO` and `GITHUB_BRANCH` still override it.)
+
+☐ Added
+
+---
+
+## 4b. Redeploy — this is not optional
+
+**Deploys → Trigger deploy → Clear cache and deploy site.**
+
+Environment variables are handed to functions when a deploy is built. Adding the variable
+does nothing to the deploy that's already running, so the site keeps returning "Uploads
+are not configured yet" until you redeploy. This is the single most common reason this
+step appears not to work.
+
+☐ Redeployed
+
+---
+
+## 4c. Check it worked
+
+Open **`your-site.netlify.app/api/submit-sleeve`** in a browser. You'll get JSON:
+
+```json
+{ "repo": "clarklab/vhs-sleeves", "tokenConfigured": true, "hint": "Ready to accept uploads." }
+```
+
+`"tokenConfigured": true` means the deploy can see the token — that's the whole of this
+step. It never prints the token itself, only whether one is present, so the URL is safe to
+open and safe to share.
+
+If it says `false`, the variable didn't reach this deploy: check the spelling of
+`GITHUB_TOKEN`, check Scopes is "All scopes", and redeploy again.
+
+☐ Reports `tokenConfigured: true`
 
 ---
 
@@ -119,6 +154,15 @@ they open a pull request for someone to approve, that's a small change to the sa
 
 **The 4MB limit** is Netlify's, not mine. The usual cause of a bigger export is
 full-resolution placed images; downsampling to 300dpi fixes it.
+
+**If an upload fails, the message tells you which thing is wrong:**
+
+| Message | Cause |
+|---|---|
+| "Uploads are not configured yet" | No token in this deploy — step 4/4b |
+| "The GitHub token was rejected" | Token expired, or missing **Contents: Read and write** |
+| "GitHub refused the commit (404)" | Token can't see the repo — check its *Repository access* names `clarklab/vhs-sleeves` |
+| "That page is … isn't the sleeve die-line" | The PDF, not the setup. Start from the template |
 
 **Adding a new tape:** add one line to `src/sleeves/registry.ts` with the id, title and
 owners. The upload endpoint reads its allowlist from that same file, so there's only one

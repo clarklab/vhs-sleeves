@@ -38,11 +38,27 @@ const json = (status: number, body: unknown) =>
   })
 
 export default async (req: Request, _context: Context) => {
-  if (req.method !== 'POST') return json(405, { error: 'Use POST.' })
-
   const token = process.env.GITHUB_TOKEN
   const repo = TARGET_REPO
   const branch = process.env.GITHUB_BRANCH || 'main'
+
+  // GET is a health check: open /api/submit-sleeve in a browser to see whether
+  // the deploy actually has a token, without doing a real upload. It reports
+  // only whether one is present — never the value, and never a prefix of it.
+  if (req.method === 'GET') {
+    return json(200, {
+      endpoint: 'submit-sleeve',
+      repo,
+      branch,
+      tokenConfigured: Boolean(token),
+      hint: token
+        ? 'Ready to accept uploads.'
+        : 'Set GITHUB_TOKEN in Netlify, then redeploy — env vars only reach ' +
+          'functions on a fresh deploy.',
+    })
+  }
+
+  if (req.method !== 'POST') return json(405, { error: 'Use POST.' })
 
   if (!token) {
     return json(500, {
